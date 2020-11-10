@@ -1,10 +1,10 @@
 import sys
 import os
 import os.path
-# import encryptionalgorithm
 from scapy.all import *
 import subprocess as sub
 import WPA2.py
+from binascii import hexlify
 
 class sniffer():
 	def __init__(self):
@@ -107,6 +107,5 @@ class sniffer():
 		process1 = sub.Popen(["xterm", "-e", "sudo python3 /home/kali/Downloads/PenO3-Kali-WPA2-Construct/WPA2/AireplayWPA2.py {}".format(self.mac)])
 		process1.wait()
 		process2.wait()
-
 
 sniffer()
