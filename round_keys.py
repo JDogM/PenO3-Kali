@@ -45,7 +45,7 @@ def s_sub(key_col):
 
 	for elem in key_col:
 		elem = hex(elem)[2:]
-		
+
 		if len(elem) < 2:
 			elem = '0' + elem
 		if elem[0].isalpha():
@@ -65,19 +65,23 @@ def s_sub(key_col):
 def remove_col(matrix, nb_col):
 	for i in range(len(matrix)):
 		matrix[i].remove(matrix[i][nb_col])
+
 	return matrix
 
 
 def add_col(matrix, col):
 	for i in range(len(col)):
 		matrix[i].append(col[i])
+
 	return matrix
 
 
 def make_empty_matrix(nb_rows):
 	matrix = []
+
 	for i in range(nb_rows):
 		matrix.append([])
+
 	return matrix
 
 
@@ -102,6 +106,9 @@ def make_key_streams(key, rounds=10):
 
 	for i in range(rounds):
 		key_streams['round{}'.format(i + 1)] = get_round_key(key_streams['round{}'.format(i)])
+
+	for i in range(4, len(key_streams)):
+		remove_col(key_streams, i)
 
 	return key_streams
 
