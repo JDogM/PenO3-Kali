@@ -50,6 +50,8 @@ def key_to_matrix(key):
 	matrix = []
 	row=[]
 
+	# Aanpassen naar (4x4)*n zodat het altijd vierkanten zijn, of whatever de bedoeling is.
+
 	for elem in key:
 		if len(row) == 4:
 			matrix.append(row)
