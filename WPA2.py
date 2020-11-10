@@ -56,6 +56,9 @@ def key_to_matrix(key):
 			row = []
 		row.append(ord(elem))
 		
+	while len(row) != 0:
+		row.append(0)
+
 	matrix.append(row)
 
 	new_matrix = []
@@ -64,7 +67,7 @@ def key_to_matrix(key):
 		new_matrix.append([])
 
 		for j in range(len(matrix)):
-			new_matrix[i].append(matrix[k][i])
+			new_matrix[i].append(matrix[j][i])
 
 	return new_matrix
 
