@@ -2,4 +2,6 @@ import os
 import sys
 
 mac = sys.argv[1]
-os.system("sudo airodump-ng --bssid {} -c 1 -w WPA_{} --output-format cap wlan1mon".format(mac, mac))
+filepath = sys.argv[2]
+
+os.system("sudo airodump-ng --bssid {} ".format(mac) + " -c 1 -w " + filepath + "/WPA_{} ".format(mac) + "--output-format cap wlan1mon")
