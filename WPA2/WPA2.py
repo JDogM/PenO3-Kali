@@ -5,7 +5,6 @@ from ShiftRows import *
 
 """
 	the matrix has to be a square matrix with hex value
-
 """
 def xor(matrix1, matrix2):
 	new_matrix = make_empty_matrix(nb_rows=4)
@@ -42,8 +41,8 @@ def decrypt_wpa2_data(encrypted_message, key, rounds=10):
 
 def key_to_matrix(key):
 	"""
-	:param key: a string
-	:return:
+		- param key: a string
+		- return: matrix
 	"""
 	matrix = []
 	row=[]
