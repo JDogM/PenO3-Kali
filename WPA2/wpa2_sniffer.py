@@ -3,7 +3,7 @@ import os
 import os.path
 from scapy.all import *
 import subprocess as sub
-import WPA2.py
+import WPA2
 from binascii import hexlify
 
 class sniffer():
