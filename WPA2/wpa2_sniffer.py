@@ -10,7 +10,7 @@ class sniffer():
 	def __init__(self):
 		start = input("First time starting up? [Y/N]:")
 
-		if start == "Y":
+		if start == "Y" or start == "y":
 			# put everything in monitor mode when starting up
 			print("Killing services")
 			os.system("sudo airmon-ng check kill")
