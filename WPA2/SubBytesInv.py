@@ -1,7 +1,5 @@
 from round_keys import *
 
-
-
 sboxinv = [
     [0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb],
     [0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb],
@@ -21,9 +19,9 @@ sboxinv = [
     [0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d]
 ]
 
-
 def sub_inv_col(col):
     new_col = []
+    
     for elem in col:
         elem = hex(elem)[2:]
         if len(elem) < 2:
@@ -37,15 +35,18 @@ def sub_inv_col(col):
         else:
             sec_coor = elem[1]
         new_col.append(sboxinv[int(first_coor)][int(sec_coor)])
+        
     return new_col
 
 
 def sub_bytes_inv(matrix):
     sub_matrix = make_empty_matrix(len(matrix))
+    
     for i in range(len(matrix)):
         col = get_col(matrix,i)
         sub_col = sub_inv_col(col)
         add_col(sub_matrix,sub_col)
+        
     return sub_matrix
 
 
