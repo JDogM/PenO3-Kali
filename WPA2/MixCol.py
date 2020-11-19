@@ -12,13 +12,17 @@ def algo(encrypted_vector):
     # Calculating the whole matrix-vector product
     for i in range(len(a)):
         s[i] = hex(int(decrypt_mix_col(q[i], a, s), 2))
+        
     s = [int(elem,16) for elem in s]
+    
     return s
 
 def mix_col_inv(matrix):
     new_matrix = make_empty_matrix(len(matrix))
+    
     for i in range(len(matrix[0])):
-        add_col(new_matrix,(algo(get_col(matrix, i))))
+        add_col(new_matrix, algo(get_col(matrix, i)))
+        
     return new_matrix
 
 def decrypt_mix_col(q, a, s):
