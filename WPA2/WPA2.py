@@ -24,21 +24,36 @@ def decrypt_wpa2_data(encrypted_message, key, rounds=10):
 	round_keys = make_key_streams(key, rounds)
 
 	for i in range(rounds, -1, -1):
-		print("round: " + i)
+		print(i)
+		print(round_keys['round10'])
 		print(encrypted_message)
-		print(round_keys)
+
 		# i = 10 tot en met 0
 		if i == 10:
+			print("xor start")
 			encrypted_message = xor(round_keys['round10'], encrypted_message)
+			print("xor end")
+			print("shift matrix row start")			
 			encrypted_message = shift_matrix_row(encrypted_message)
+			print("shift matrix row end")
+			print("sub bytes inv start")			
 			encrypted_message = sub_bytes_inv(encrypted_message)
+			print("sub bytes inv end")
 		elif i == 0:
 			decrypted_message = xor(round_keys['round0'], encrypted_message)
 		else:
+			print("xor start")
 			encrypted_message = xor(round_keys['round{}'.format(i)], encrypted_message)
+			print("xor end")
+			print("mix col inv start")
 			encrypted_message = mix_col_inv(encrypted_message)
+			print("mix col inv end")
+			print("shift matrix row start")
 			encrypted_message = shift_matrix_row(encrypted_message)
+			print("shift matrix row end")
+			print("sub bytes inv start")
 			encrypted_message = sub_bytes_inv(encrypted_message)
+			print("sub bytes inv end")
 
 	return decrypted_message
 
@@ -58,7 +73,7 @@ def key_to_matrix(key):
 			row = []
 		row.append(ord(elem))
 		
-	while len(row) != 0:
+	while len(row) != 4:
 		row.append(0)
 
 	matrix.append(row)

