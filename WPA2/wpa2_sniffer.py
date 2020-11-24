@@ -71,8 +71,19 @@ class sniffer():
 
 		return condensed_mac
 
+	def fill_master_key(self):
+		if len(self.master_key) < 16:
+			while len(self.master_key) < 16:
+				self.master_key += "0"
+		elif len(self.master_key) < 24:
+			while len(self.master_key) < 24:
+				self.master_key += "0"
+		else
+			while len(self.master_key) < 32:
+				self.master_key += "0"
+
 	def get_transient_key(self):
-		password = self.master_key
+		password = fill_master_key()
 		ssid = self.wifi
 		capfile = rdpcap(self.dfilepath + "/WPA_{}-01.cap".format(self.mac))
 		handshakes = []
@@ -113,9 +124,9 @@ class sniffer():
 
 		self.rounds = 10
 
-		if nb_cols == 6:
+		if nb_cols == 24:
 			self.rounds = 12
-		elif nb_cols == 8:
+		elif nb_cols == 32:
 			self.rounds = 14
 
 	def decrypt(self, packet):
