@@ -22,8 +22,8 @@ def mix_col_inv(matrix):
     
     for i in range(len(matrix[0])):
         add_col(new_matrix, algo(get_col(matrix, i)))
-        
     return new_matrix
+
 
 def decrypt_mix_col(q, a, s):
     result = ''
@@ -45,6 +45,8 @@ def decrypt_mix_col(q, a, s):
 
     # Addition with modulo 2 (xor)
     result = summate(polynomials, l)
+    if len(result) == 0:
+        result = '0'
 
     return result
 
@@ -136,3 +138,7 @@ def longDiv(p):
         p = summate([p, reducePoly])
 
     return p
+mix_col_inv([[0x0e, 0x0b, 0x0d, 0x09],
+         [0x09, 0x0e, 0x0b, 0x0d],
+         [0x0d, 0x09, 0x0e, 0x0b],
+         [0x0b, 0x0d, 0x09, 0x0e]])

@@ -86,6 +86,8 @@ def make_empty_matrix(nb_rows):
 
 
 def get_round_key(key):
+	print(key)
+	
 	rword = get_col(key, len(key) - 1)  # take the last row of the key
 	rword[0], rword[1], rword[2], rword[3] = rword[1], rword[2], rword[3], rword[0]  # put first element at the buttom
 	s_sub_rword = s_sub(rword)  # s box the elements
@@ -105,6 +107,7 @@ def make_key_streams(key, rounds=10):
 	key_streams['round{}'.format(0)] = key
 
 	for i in range(rounds):
+		print(i)
 		key_streams['round{}'.format(i + 1)] = get_round_key(key_streams['round{}'.format(i)])
 
 #	for i in range(4, len(key_streams)):
