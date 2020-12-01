@@ -18,7 +18,7 @@ def make_matrix(encrypted_message) :
     matrices = []
 
     for i in range(nb_matrices) :
-        matrix_content = hex_string[i * 32 :i * 32 + 31]
+        matrix_content = hex_string[i * 32 :i * 32 + 32]
         matrix = [[], [], [], []]
 
         for col in range(4) :

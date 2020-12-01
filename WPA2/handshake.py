@@ -20,18 +20,19 @@ def customPRF512(key, A, B):
 def pmk_generation(password, SSID):
     PMK = pbkdf2_hmac('sha1', password.encode('ascii'), SSID.encode('ascii'), 4096, 32)
 
-    print(len(PMK))
+#    print("PMK: ", len(PMK), " ", b2a_hex(PMK).decode())
     
     return PMK
 
 def ptk_generation(PMK, PKE, key_data):
     PTK = b2a_hex(customPRF512(PMK, PKE, key_data)).decode()
 
-    print("Our PTKs:\n", PTK[0:32], "\n", PTK[32:64], "\n", PTK[64:96], "\n", PTK[96:128])
+    print("\nOur PTKs:\n", PTK[0:32], "\n", PTK[32:64], "\n", PTK[64:96], "\n", PTK[96:128])
     print()
     
-    return PTK[0:32]
+    return PTK[64:96]
 
+""" Deprecated """
 def handshake_sorter(handshakes):
     for i in range(len(handshakes)):
         load = bytes_hex(handshakes[i][Raw]).decode('utf-8')
@@ -41,3 +42,27 @@ def handshake_sorter(handshakes):
             return [handshakes[i + k] for k in range(4)]
         
     return []
+
+def find_as_nonce(handshakes):
+    anonce_checksum = '02010a'
+    snonce_checksum = '02008a'
+
+    anonce = ''
+    snonce = ''
+
+    start = 26
+    offset = 64
+
+    for packet in handshakes:
+        check = ''
+        data_layer = b2a_hex(packet.getlayer(EAPOL).load).decode()
+
+        for i in data_layer:
+            check += i
+
+            if check == anonce_checksum:
+                anonce = data_layer[start:start+offset]
+            elif check == snonce_checksum:
+                snonce = data_layer[start:start+offset]
+
+    return anonce, snonce

@@ -117,43 +117,58 @@ class sniffer():
 		ssid = self.wifi
 		capfile = rdpcap(self.dfilepath + "/WPA_{}-01.cap".format(self.mac))
 		handshakes = []
+
 		for i in capfile:
 			if i.haslayer(EAPOL):
 				handshakes.append(i)
 
-		if len(handshakes) > 4:
-			handshakes = Handshake.handshake_sorter(handshakes)
-			if len(handshakes) == 0:
-				print('No complete Handshake')
-		elif len(handshakes) < 4:
-			print('No complete handshake')
-		else:
-			if bytes_hex(handshakes[0][Raw]).decode('utf-8')[154:186] != '0' * 32:
-				print('No complete handshake')
+		# if len(handshakes) > 4:
+		# 	handshakes = Handshake.handshake_sorter(handshakes)
+		# 	if len(handshakes) == 0:
+		# 		print('No complete Handshake')
+		# elif len(handshakes) < 4:
+		# 	print('No complete handshake')
+		# else:
+		# 	if bytes_hex(handshakes[0][Raw]).decode('utf-8')[154:186] != '0' * 32:
+		# 		print('No complete handshake')
 
-		load1 = hexlify(bytes(handshakes[0][EAPOL][Raw])).decode('utf-8')
-		load2 = hexlify(bytes(handshakes[1][EAPOL][Raw])).decode('utf-8')
+		anonce, snonce = Handshake.find_as_nonce(handshakes)
+#		print("anonce: ", anonce, "\nsnonce: ", snonce)
+		anonce = a2b_hex(anonce)
+		snonce = a2b_hex(snonce)
+
+#		load1 = hexlify(bytes(handshakes[0][EAPOL][Raw])).decode('utf-8')
+#		load2 = hexlify(bytes(handshakes[1][EAPOL][Raw])).decode('utf-8')
 
 		assert self.mac.lower() == handshakes[0].addr2
-		mac_ap = a2b_hex(self.condense_mac(self.mac))
+		mac_ap = a2b_hex(self.condense_mac(self.mac.lower()))
 		mac_cl_bin = a2b_hex(self.condense_mac(handshakes[0].addr1))
+
+#		print("mac: ", self.condense_mac(self.mac))
+
+#		print(load1[26:90])
+#		print(load2[26:90])
 		
 		self.mac_cl = handshakes[0].addr1
 
-		anonce = a2b_hex(load1[26:90])
-		snonce = a2b_hex(load2[26:90])
+#		anonce = a2b_hex(load1[26:90])
+#		snonce = a2b_hex(load2[26:90])
 
 		PKE = b'Pairwise key expansion'  # Standard Set Value so we don't know what it is
 		PMK = Handshake.pmk_generation(password, ssid)
 		key_data = min(mac_ap, mac_cl_bin) + max(mac_ap, mac_cl_bin) + min(anonce, snonce) + max(anonce, snonce)
 		PTK = Handshake.ptk_generation(PMK, PKE, key_data)
 
+#		print("anonce: ", anonce, "\nsnonce: ", snonce)
+#		print("keydata: ", b2a_hex(key_data).decode())
+
 		""" als test """
-		self.transient_key = WPA2.key_to_matrix(self.test_transient_key[96:128])
+#		self.transient_key = WPA2.key_to_matrix(self.test_transient_key[64:96])
 		""" eind test """
 
-		"""		self.transient_key = WPA2.key_to_matrix(PTK)		"""
-		print(self.test_transient_key)
+		self.transient_key = WPA2.key_to_matrix(PTK)
+
+		print("test_transient_key (aircrack): ", self.test_transient_key)
 		nb = len(self.master_key)
 
 		self.rounds = 10
@@ -166,24 +181,29 @@ class sniffer():
 		self.round_keys = WPA2.make_key_streams(self.transient_key, self.rounds)
 
 	def decrypt(self, packet):
-		encrypted_mess = WPA2.make_matrix(bytes_hex(packet.getlayer(Raw)))
+		encrypted_mess = WPA2.make_matrix(bytes_hex(packet.getlayer(Dot11CCMP)))
 
 		print("---------------------------")
-		print(encrypted_mess)	
+		print(bytes_hex(packet.getlayer(Dot11CCMP)))
+		print(encrypted_mess)
 		
 		unencrypted_mess = WPA2.decrypt_wpa2_data(encrypted_mess, self.round_keys, self.rounds)
 		#unencrypted_mess = self.filter_packets(unencrypted_mess)
 
 		print("---------------------------")
 		print("Sender: ", packet.addr1, "\nReceiver: ", packet.addr2)
-		print("Message: ") 
+		print("Message: ")
+
+		#self.file = open("textoutput.txt", "a")
+		#self.file.write(unencrypted_mess)
+		#self.file.close()
 
 		return unencrypted_mess
 
 	def filtersniff(self, packet):
 		if packet is None:
 			pass
-		elif packet.haslayer(Raw):
+		elif packet.haslayer(Dot11CCMP):
 			if (packet.addr1 == self.mac_cl) or (packet.addr2 == self.mac_cl):				
 				return packet
 
