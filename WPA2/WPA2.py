@@ -9,8 +9,8 @@ from binascii import *
 	the matrix has to be a square matrix with hex value
 """
 def make_matrix(encrypted_message) :
-    hex_string = encrypted_message.decode('utf-8')
-
+    #hex_string = encrypted_message.decode('utf-8')
+    hex_string = encrypted_message
     while len(hex_string) % 32 != 0 :
         hex_string += '0'
 
@@ -24,7 +24,7 @@ def make_matrix(encrypted_message) :
         for col in range(4) :
             for row in range(4) :
                 pair = matrix_content[:2]
-                matrix_content = matrix_content[2 :]
+                matrix_content = matrix_content[2:]
                 matrix[row].append(int(pair, 16))
 
         matrices.append(matrix)
@@ -67,38 +67,44 @@ def key_to_matrix(key):
 
     return matrix
 
-def decrypt_wpa2_data(encrypted_message, round_keys, rounds=10) :
-    #encrypted_list = make_matrix(encrypted_message)  # list
-    #round_keys = make_key_streams(key, rounds)  # dict		zit nu in wpa2_sniffer
-    decrypted = str()
-    for message in encrypted_message:
-        for i in range(rounds, -1, -1) :
-            # i = 10 tot en met 0
-            if i == rounds :
-                #print("xor start")
-                message = xor(round_keys['round10'], message)
-                #print("xor end")
-                #print("shift matrix row start")
+def encrypt_wpa2_data(decrypted_message, round_keys, rounds = 10):
+    for message in decrypted_message:
+        for i in range(rounds+1):
+            if i == 0:
+                message = xor(round_keys['round0'], message)
+            elif i == rounds:
+                message = sub_bytes(message)
                 message = shift_matrix_row(message)
-                #print("shift matrix row end")
-                #print("sub bytes inv start")
+                message = xor(round_keys['round10'], message)
+            else:
+                print("start",ascii_to_hex(message))
+                message = sub_bytes(message)
+                print("after sub->",ascii_to_hex(message))
+                message = shift_matrix_row(message)
+                print("after row ->",ascii_to_hex(message))
+                message = mix_col(message)
+                print("after col ->", ascii_to_hex(message))
+                message = xor(round_keys['round{}'.format(i)], message)
+                print("after key ->",ascii_to_hex(message))
+    return ascii_to_hex(message)
+
+def decrypt_wpa2_data(encrypted_message, round_keys, rounds=10) :
+    for message in encrypted_message:
+        #decrypted = str()
+        for i in range(rounds, -1, -1) :
+            if i == rounds:
+                message = xor(round_keys['round10'], message)
+                message = shift_matrix_row_inv(message)
                 message = sub_bytes_inv(message)
-                #print("sub bytes inv end")
             elif i == 0:
                 decrypted_message = xor(round_keys['round0'], message)
             else:
-                #print("xor start")
                 message = xor(round_keys['round{}'.format(i)], message)
-                #print("xor end")
-                #print("mix col inv start")
                 message = mix_col_inv(message)
-                #print("mix col inv end")
-                #print("shift matrix row start")
-                message = shift_matrix_row(message)
-                #print("shift matrix row end")
-                #print("sub bytes inv start")
+                message = shift_matrix_row_inv(message)
                 message = sub_bytes_inv(message)
-                #print("sub bytes inv end")
 
-        decrypted += matrix_to_string(decrypted_message)
-    return decrypted
+        #decrypted += matrix_to_string(decrypted_message)
+    return decrypted_message
+
+

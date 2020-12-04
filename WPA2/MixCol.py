@@ -4,10 +4,10 @@ def algo(encrypted_vector):
     s = [0x0, 0x0, 0x0, 0x0]  # Decrypted vector
     a = encrypted_vector  # Encrypted vector from i.g., AERRijndeal.c
 
-    q = [[0x0e, 0x0b, 0x0d, 0x09],
-         [0x09, 0x0e, 0x0b, 0x0d],
-         [0x0d, 0x09, 0x0e, 0x0b],
-         [0x0b, 0x0d, 0x09, 0x0e]]  # Is inv(GF(2^8))
+    q = [[0x02, 0x03, 0x01, 0x01],
+         [0x01, 0x02, 0x03, 0x01],
+         [0x01, 0x01, 0x02, 0x03],
+         [0x03, 0x01, 0x01, 0x02]]  # Is inv(GF(2^8))
 
     # Calculating the whole matrix-vector product
     for i in range(len(a)):
@@ -17,13 +17,37 @@ def algo(encrypted_vector):
     
     return s
 
+def algo_inv(encrypted_vector):
+    s = [0x0, 0x0, 0x0, 0x0]  # Decrypted vector
+    a = encrypted_vector  # Encrypted vector from i.g., AERRijndeal.c
+
+    q = [[0x0e, 0x0b, 0x0d, 0x09],
+         [0x09, 0x0e, 0x0b, 0x0d],
+         [0x0d, 0x09, 0x0e, 0x0b],
+         [0x0b, 0x0d, 0x09, 0x0e]] # Is inv(GF(2^8))
+
+    # Calculating the whole matrix-vector product
+    for i in range(len(a)):
+        s[i] = hex(int(decrypt_mix_col(q[i], a, s), 2))
+
+    s = [int(elem,16) for elem in s]
+
+    return s
+
 def mix_col_inv(matrix):
     new_matrix = make_empty_matrix(len(matrix))
     
     for i in range(len(matrix[0])):
-        add_col(new_matrix, algo(get_col(matrix, i)))
+        add_col(new_matrix, algo_inv(get_col(matrix, i)))
     return new_matrix
 
+
+def mix_col(matrix) :
+    new_matrix = make_empty_matrix(len(matrix))
+
+    for i in range(len(matrix[0])) :
+        add_col(new_matrix, algo(get_col(matrix, i)))
+    return new_matrix
 
 def decrypt_mix_col(q, a, s):
     result = ''
@@ -138,7 +162,10 @@ def longDiv(p):
         p = summate([p, reducePoly])
 
     return p
-mix_col_inv([[0x0e, 0x0b, 0x0d, 0x09],
-         [0x09, 0x0e, 0x0b, 0x0d],
-         [0x0d, 0x09, 0x0e, 0x0b],
-         [0x0b, 0x0d, 0x09, 0x0e]])
+
+
+# a = mix_col_inv([[0x0e, 0x0b, 0x0d, 0x09],
+#          [0x09, 0x0e, 0x0b, 0x0d],
+#          [0x0d, 0x09, 0x0e, 0x0b],
+#          [0x0b, 0x0d, 0x09, 0x0e]])
+
