@@ -77,20 +77,14 @@ def encrypt_wpa2_data(decrypted_message, round_keys, rounds = 10):
                 message = shift_matrix_row(message)
                 message = xor(round_keys['round10'], message)
             else:
-                print("start",ascii_to_hex(message))
                 message = sub_bytes(message)
-                print("after sub->",ascii_to_hex(message))
                 message = shift_matrix_row(message)
-                print("after row ->",ascii_to_hex(message))
                 message = mix_col(message)
-                print("after col ->", ascii_to_hex(message))
                 message = xor(round_keys['round{}'.format(i)], message)
-                print("after key ->",ascii_to_hex(message))
-    return ascii_to_hex(message)
+    return message
 
 def decrypt_wpa2_data(encrypted_message, round_keys, rounds=10) :
     for message in encrypted_message:
-        #decrypted = str()
         for i in range(rounds, -1, -1) :
             if i == rounds:
                 message = xor(round_keys['round10'], message)
@@ -104,7 +98,6 @@ def decrypt_wpa2_data(encrypted_message, round_keys, rounds=10) :
                 message = shift_matrix_row_inv(message)
                 message = sub_bytes_inv(message)
 
-        #decrypted += matrix_to_string(decrypted_message)
     return decrypted_message
 
 
