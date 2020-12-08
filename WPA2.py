@@ -1,15 +1,10 @@
 from RoundKeys import *
 from MixCol import *
-from SubBytesInv import *
+from SubBytes import *
 from ShiftRows import *
 from binascii import *
 
-
-"""
-	the matrix has to be a square matrix with hex value
-"""
 def make_matrix(encrypted_message) :
-    #hex_string = encrypted_message.decode('utf-8')
     hex_string = encrypted_message
     while len(hex_string) % 32 != 0 :
         hex_string += '0'
@@ -31,7 +26,7 @@ def make_matrix(encrypted_message) :
 
     return matrices
 
-def xor(matrix1, matrix2) :
+def xor(matrix1, matrix2):
     new_matrix = make_empty_matrix(nb_rows=4)
 
     for i in range(len(matrix1)) :
@@ -40,11 +35,6 @@ def xor(matrix1, matrix2) :
 
     return new_matrix
 
-"""
-	the key and decrypted_message are a list in a list structure
-	round_keys is a dictionary where the keys are roundi with i the specific round and the values the round key
-	round0 is the orginal key
-"""
 def matrix_to_string(matrix) :
     string = ""
     for col in range(len(matrix)) :
@@ -53,10 +43,6 @@ def matrix_to_string(matrix) :
     return string
 
 def key_to_matrix(key):
-    """
-		- param key: a string
-		- return: matrix
-    """
     matrix = [[], [], [], []]
 
     for col in range(4):
